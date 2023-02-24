@@ -5,7 +5,7 @@ const { expect } = require('chai');
 
 
 
-contract("Voting", accounts => {
+contract("Voting simple tests", accounts => {
 
     const _owner = accounts[0];
     const _voter1 = accounts[1];
@@ -14,18 +14,18 @@ contract("Voting", accounts => {
     const _voter4 = accounts[4];
     const _voter5 = accounts[5];
     const _voter6 = accounts[6];
-    const _noneVoter = accounts[9];
+    const _nonVoter = accounts[9];
 
 
     let votingInstance;
 
-    beforeEach(async function () {
+    beforeEach(async  () => {
         votingInstance = await Voting.new({ from: _owner });
     });
 
 
     //Initial state variables tests
-    describe("State variables tests", () => {
+    describe("Intial state variables tests", () => {
 
         it("has started winningProposalID to 0", async () => {
             expect(await votingInstance.winningProposalID()).to.be.bignumber.equal("0");
@@ -34,36 +34,30 @@ contract("Voting", accounts => {
         it("has started workflowStatus to RegisteringVoters(0)", async () => {
             expect(await votingInstance.workflowStatus.call()).to.be.bignumber.equal("0");
         });
-
-        /*it('test initial stage', async () => {
-            expect((await this.votingInstance.workflowStatus.call()).toString()).to.equal(votingInstance.WorkflowStatus.RegisteringVoters.toString());
-        });
-        https://ethereum.stackexchange.com/questions/29344/truffle-testing-enum-values*/
     })
 
 
 
     //Getters tests
-    describe("Getters tests", () => {
+    describe("Getters function tests", () => {
         it("only voters can request voter informations", async () => {
             await votingInstance.addVoter(_voter1, { from: _owner });
             let voter1;
-            await expectRevert(voter1 = votingInstance.getVoter.call(_voter1, { from: _noneVoter }), "You're not a voter");
+            await expectRevert(voter1 = votingInstance.getVoter.call(_voter1, { from: _nonVoter }), "You're not a voter");
             expect(await (voter1 = votingInstance.getVoter.call(_voter1, { from: _voter1 })));
         });
         it("only voters can request proposal informations", async () => {
             await votingInstance.addVoter(_voter1, { from: _owner });
             await votingInstance.startProposalsRegistering({ from: _owner })
             let proposal;
-            await expectRevert(proposal = votingInstance.getOneProposal.call(0, { from: _noneVoter }), "You're not a voter");
+            await expectRevert(proposal = votingInstance.getOneProposal.call(0, { from: _nonVoter }), "You're not a voter");
             expect(await (proposal = votingInstance.getOneProposal.call(0, { from: _voter1 })));
         });
     })
 
 
-
     //Workflow status change
-    describe("STATE tests", () => {
+    describe("States function tests", () => {
 
         // RegisteringVoters status tests
         describe("Change from RegisteringVoters to other tests", () => {
@@ -71,7 +65,7 @@ contract("Voting", accounts => {
                 expect(await votingInstance.startProposalsRegistering({ from: _owner }));
             });
 
-            it("None owner can't change status from RegisteringVoters to ProposalsRegistrationStarted", async () => {
+            it("non-owner can't change status from RegisteringVoters to ProposalsRegistrationStarted", async () => {
                 await expectRevert(votingInstance.startProposalsRegistering({ from: _voter1 }), 'Ownable: caller is not the owner');
             });
 
@@ -93,14 +87,14 @@ contract("Voting", accounts => {
         // ProposalsRegistrationStarted status tests
         describe("Change from ProposalsRegistrationStarted to other tests", () => {
 
-            beforeEach(async function () {
+            beforeEach(async () => {
                 await votingInstance.addVoter(_voter1, { from: _owner })
                 await votingInstance.startProposalsRegistering({ from: _owner });
             });
 
             it("default GENESIS proposal with ID 0 is created", async () => {
                 let proposal;
-                proposal = await votingInstance.getOneProposal(0,{ from: _voter1 });
+                proposal = await votingInstance.getOneProposal(0, { from: _voter1 });
                 expect(proposal.description).to.equal("GENESIS");
             });
 
@@ -108,7 +102,7 @@ contract("Voting", accounts => {
                 expect(await votingInstance.endProposalsRegistering({ from: _owner }));
             });
 
-            it("None owner can't change status from ProposalsRegistrationStarted to ProposalsRegistrationEnded", async () => {
+            it("non-owner can't change status from ProposalsRegistrationStarted to ProposalsRegistrationEnded", async () => {
                 await expectRevert(votingInstance.endProposalsRegistering({ from: _voter1 }), 'Ownable: caller is not the owner');
             });
 
@@ -130,7 +124,7 @@ contract("Voting", accounts => {
         // ProposalsRegistrationEnded status tests
         describe("Change from ProposalsRegistrationEnded to other tests", () => {
 
-            beforeEach(async function () {
+            beforeEach(async () => {
                 await votingInstance.startProposalsRegistering({ from: _owner });
                 await votingInstance.endProposalsRegistering({ from: _owner });
 
@@ -140,7 +134,7 @@ contract("Voting", accounts => {
                 expect(await votingInstance.startVotingSession({ from: _owner }));
             });
 
-            it("None owner can't change status from ProposalsRegistrationEnded to startVotingSession", async () => {
+            it("non-owner can't change status from ProposalsRegistrationEnded to startVotingSession", async () => {
                 await expectRevert(votingInstance.startVotingSession({ from: _voter1 }), 'Ownable: caller is not the owner');
             });
 
@@ -162,7 +156,7 @@ contract("Voting", accounts => {
         // VotingSessionStarted status tests
         describe("Change from VotingSessionStarted to other tests", () => {
 
-            beforeEach(async function () {
+            beforeEach(async () => {
                 await votingInstance.startProposalsRegistering({ from: _owner });
                 await votingInstance.endProposalsRegistering({ from: _owner });
                 await votingInstance.startVotingSession({ from: _owner });
@@ -172,7 +166,7 @@ contract("Voting", accounts => {
                 expect(await votingInstance.endVotingSession({ from: _owner }));
             });
 
-            it("None owner can't change status from startVotingSession to VotingSessionEnded", async () => {
+            it("non-owner can't change status from startVotingSession to VotingSessionEnded", async () => {
                 await expectRevert(votingInstance.endVotingSession({ from: _voter1 }), 'Ownable: caller is not the owner');
             });
 
@@ -194,13 +188,13 @@ contract("Voting", accounts => {
         // VotingSessionEnded status tests
         describe("Change from VotingSessionEnded to other tests", () => {
 
-            beforeEach(async function () {
+            beforeEach(async () => {
                 await votingInstance.addVoter(_voter1, { from: _owner });
                 await votingInstance.startProposalsRegistering({ from: _owner });
-                await votingInstance.addProposal("proposal1",{ from: _voter1 })
+                await votingInstance.addProposal("proposal1", { from: _voter1 })
                 await votingInstance.endProposalsRegistering({ from: _owner });
                 await votingInstance.startVotingSession({ from: _owner });
-                await votingInstance.setVote(1,{ from: _voter1 });
+                await votingInstance.setVote(1, { from: _voter1 });
                 await votingInstance.endVotingSession({ from: _owner });
             });
 
@@ -208,7 +202,7 @@ contract("Voting", accounts => {
                 expect(await votingInstance.tallyVotes({ from: _owner }));
             });
 
-            it("None owner can't change status from VotingSessionEnded to VotesTallied", async () => {
+            it("non-owner can't change status from VotingSessionEnded to VotesTallied", async () => {
                 await expectRevert(votingInstance.tallyVotes({ from: _voter1 }), 'Ownable: caller is not the owner');
             });
 
@@ -226,7 +220,7 @@ contract("Voting", accounts => {
                 await expectEvent(changeStatus, "WorkflowStatusChange", { previousStatus: BN(4), newStatus: BN(5) });
             });
 
-            it("votes are correctly tallied with 1 vote 1 proposal", async () =>{
+            it("votes are correctly tallied with 1 vote 1 proposal", async () => {
                 await votingInstance.tallyVotes({ from: _owner })
                 expect(await votingInstance.winningProposalID()).to.be.bignumber.equal("1");
             });
@@ -242,24 +236,17 @@ contract("Voting", accounts => {
                 await votingInstance.tallyVotes({ from: _owner });
                 await expectRevert(votingInstance.startProposalsRegistering({ from: _owner }), 'Registering proposals cant be started now');
             });
-
         });
-
-
-
-
-
     });
 
 
-
     //Add voter tests
-    describe("Registration tests", () => {
+    describe("Registration function tests", () => {
         it("owner can add voter", async () => {
             expect(await votingInstance.addVoter(_voter1, { from: _owner }));
         });
 
-        it("other than owner can't add voter", async () => {
+        it("non-owner can't add voter", async () => {
             await expectRevert(votingInstance.addVoter(_voter2, { from: _voter1 }), 'Ownable: caller is not the owner');
         });
 
@@ -284,5 +271,131 @@ contract("Voting", accounts => {
             await expectEvent(vote, "VoterRegistered", { voterAddress: _voter1 });
         });
     });
+
+    //Add Proposal tests
+    describe("Proposal function tests", () => {
+        beforeEach(async () => {
+            await votingInstance.addVoter(_voter1, { from: _owner });
+            await votingInstance.addVoter(_voter2, { from: _owner });
+            await votingInstance.startProposalsRegistering({ from: _owner });
+        });
+
+        it("voter can add proposal", async () => {
+            expect(await votingInstance.addProposal("Proposal", { from: _voter1 }));
+            expect(await votingInstance.addProposal("Proposal", { from: _voter2 }));
+
+        });
+
+        it("voter can add several proposal", async () => {
+            expect(await votingInstance.addProposal("Proposal1", { from: _voter1 }));
+            expect(await votingInstance.addProposal("Proposal2", { from: _voter1 }));
+        });
+
+        it("non-voter can't add proposal", async () => {
+            await expectRevert(votingInstance.addProposal("Proposal", { from: _nonVoter }), "You're not a voter");
+        });
+
+        it("can not add a proposal when state is not ProposalsRegistrationStarted", async () => {
+            await votingInstance.endProposalsRegistering({ from: _owner });
+            await expectRevert(votingInstance.addProposal("Proposal", { from: _voter1 }), 'Proposals are not allowed yet');
+        });
+
+        it("proposal can not be empty", async () => {
+            await expectRevert(votingInstance.addProposal("", { from: _voter1 }), "Vous ne pouvez pas ne rien proposer");
+        });
+
+        it("proposal descriptions are correctly stored", async () => {
+            await votingInstance.addProposal("ProposalDesc1", { from: _voter1 });
+            await votingInstance.addProposal("ProposalDesc2", { from: _voter2 });
+            const proposal0 = await votingInstance.getOneProposal.call(0, { from: _voter1 });
+            const proposal1 = await votingInstance.getOneProposal.call(1, { from: _voter1 });
+            const proposal2 = await votingInstance.getOneProposal.call(2, { from: _voter1 });
+            expect(proposal0.description).to.equal("GENESIS");
+            expect(proposal1.description).to.equal("ProposalDesc1");
+            expect(proposal2.description).to.equal("ProposalDesc2");
+        });
+
+        it("event is correctly emmited when proposal is submitted", async () => {
+            const submitProp1 = await votingInstance.addProposal("ProposalDesc1", { from: _voter1 });
+            await expectEvent(submitProp1, "ProposalRegistered", { proposalId: BN(1) });
+            const submitProp2 = await votingInstance.addProposal("ProposalDesc2", { from: _voter1 });
+            await expectEvent(submitProp2, "ProposalRegistered", { proposalId: BN(2) });
+        });
+    });
+
+    //Add Vote tests
+    describe("Vote function tests", () => {
+        beforeEach(async () => {
+            await votingInstance.addVoter(_voter1, { from: _owner });
+            await votingInstance.addVoter(_voter2, { from: _owner });
+            await votingInstance.addVoter(_voter3, { from: _owner });
+            await votingInstance.startProposalsRegistering({ from: _owner });
+            await votingInstance.addProposal("ProposalDesc1", { from: _voter1 });
+            await votingInstance.addProposal("ProposalDesc2", { from: _voter2 });
+            await votingInstance.addProposal("ProposalDesc3", { from: _voter1 });
+            await votingInstance.endProposalsRegistering({ from: _owner });
+            await votingInstance.startVotingSession({ from: _owner });
+        });
+
+
+        it("voter can vote", async () => {
+            expect(await votingInstance.setVote(2, { from: _voter1 }));
+            expect(await votingInstance.setVote(1, { from: _voter2 }));
+            expect(await votingInstance.setVote(3, { from: _voter3 }));
+
+        });
+
+        it("non-voter can't vote", async () => {
+            await expectRevert(votingInstance.setVote(2, { from: _nonVoter }), "You're not a voter");
+        });
+
+        it("can not vote when state is not VotingSessionStarted", async () => {
+            await votingInstance.endVotingSession({ from: _owner });
+            await expectRevert(votingInstance.setVote(1, { from: _voter1 }), 'Voting session havent started yet');
+        });
+
+        it("voter can vote only 1 time", async () => {
+            expect(await votingInstance.setVote(2, { from: _voter1 }));
+            await expectRevert(votingInstance.setVote(1, { from: _voter1 }), 'You have already voted');
+        });
+
+        it("voter can only vote for existing proposal", async () => {
+            await expectRevert(votingInstance.setVote(10, { from: _voter1 }), 'Proposal not found');
+        });
+
+        it("voter votedProposalId is set to proposal ID when he has voted", async () => {
+            await votingInstance.setVote(2, { from: _voter1 });
+            const voter1 = await votingInstance.getVoter.call(_voter1, { from: _voter1 });
+            expect(voter1.votedProposalId).to.be.bignumber.equal("2");
+        });
+
+        it("voter hasVoted is set true when he has voted", async () => {
+            await votingInstance.setVote(2, { from: _voter1 });
+            const voter1 = await votingInstance.getVoter.call(_voter1, { from: _voter1 });
+            expect(voter1.hasVoted).to.be.true;
+        });
+
+        it("proposal voteCount is incremented  when a voter has voted it", async () => {
+            let proposal;
+            proposal = await votingInstance.getOneProposal.call(2, { from: _voter1 });
+            expect(proposal.voteCount).to.be.bignumber.equal("0");
+            await votingInstance.setVote(2, { from: _voter1 });
+            proposal = await votingInstance.getOneProposal.call(2, { from: _voter1 });
+            expect(proposal.voteCount).to.be.bignumber.equal("1");
+            await votingInstance.setVote(2, { from: _voter2 });
+            proposal = await votingInstance.getOneProposal.call(2, { from: _voter1 });
+            expect(proposal.voteCount).to.be.bignumber.equal("2");
+
+        });
+
+        it("event is correctly emmited when proposal is submitted", async () => {
+            const submitVote1 = await votingInstance.setVote(2, { from: _voter1 });
+            await expectEvent(submitVote1, "Voted", { voter: _voter1, proposalId: BN(2) });
+            const submitVote2 = await votingInstance.setVote(1, { from: _voter2 });
+            await expectEvent(submitVote2, "Voted", { voter: _voter2, proposalId: BN(1) });
+        });
+    });
+
+
 
 });
