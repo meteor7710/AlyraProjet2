@@ -11,9 +11,6 @@ contract("Voting simple tests", accounts => {
     const _voter1 = accounts[1];
     const _voter2 = accounts[2];
     const _voter3 = accounts[3];
-    const _voter4 = accounts[4];
-    const _voter5 = accounts[5];
-    const _voter6 = accounts[6];
     const _nonVoter = accounts[9];
 
 
@@ -28,7 +25,7 @@ contract("Voting simple tests", accounts => {
     describe("Intial state variables tests", () => {
 
         it("has started winningProposalID to 0", async () => {
-            expect(await votingInstance.winningProposalID()).to.be.bignumber.equal("0");
+            expect(await votingInstance.winningProposalID.call()).to.be.bignumber.equal("0");
         });
 
         it("has started workflowStatus to RegisteringVoters(0)", async () => {
@@ -43,8 +40,8 @@ contract("Voting simple tests", accounts => {
         it("only voters can request voter informations", async () => {
             await votingInstance.addVoter(_voter1, { from: _owner });
             let voter1;
-            await expectRevert(voter1 = votingInstance.getVoter.call(_voter1, { from: _nonVoter }), "You're not a voter");
-            expect(await (voter1 = votingInstance.getVoter.call(_voter1, { from: _voter1 })));
+            await expectRevert( voter1 = votingInstance.getVoter.call(_voter1, { from: _nonVoter }), "You're not a voter");
+            expect(await ( voter1 = votingInstance.getVoter.call(_voter1, { from: _voter1 })));
         });
         it("only voters can request proposal informations", async () => {
             await votingInstance.addVoter(_voter1, { from: _owner });
@@ -397,5 +394,149 @@ contract("Voting simple tests", accounts => {
     });
 
 
+
+});
+
+contract("Voting scenarios tests", accounts => {
+
+    const _owner = accounts[0];
+    const _voter1 = accounts[1];
+    const _voter2 = accounts[2];
+    const _voter3 = accounts[3];
+    const _voter4 = accounts[4];
+    const _voter5 = accounts[5];
+    const _voter6 = accounts[6];
+
+    let votingInstance;
+
+    beforeEach(async  () => {
+        votingInstance = await Voting.new({ from: _owner });
+    });
+
+    it("Scenario 1 - 4 voters  - 3 proposals - 1 winner", async () => {
+        //Add voters
+        await votingInstance.addVoter(_voter1, { from: _owner });
+        await votingInstance.addVoter(_voter2, { from: _owner });
+        await votingInstance.addVoter(_voter3, { from: _owner });
+        await votingInstance.addVoter(_voter4, { from: _owner });
+
+        //Add proposals
+        await votingInstance.startProposalsRegistering({ from: _owner });
+        await votingInstance.addProposal("ProposalDesc1", { from: _voter1 });
+        await votingInstance.addProposal("ProposalDesc2", { from: _voter2 });
+        await votingInstance.addProposal("ProposalDesc3", { from: _voter1 });
+        await votingInstance.endProposalsRegistering({ from: _owner });
+
+        //Submit votes
+        await votingInstance.startVotingSession({ from: _owner });
+        await votingInstance.setVote(2, { from: _voter1 });
+        await votingInstance.setVote(2, { from: _voter2 });
+        await votingInstance.setVote(2, { from: _voter3 });
+        await votingInstance.setVote(3, { from: _voter4 });
+        await votingInstance.endVotingSession({ from: _owner });
+
+        //Tally votes
+        await votingInstance.tallyVotes({ from: _owner });  
+        
+        //Result analyses
+        let proposal;
+        proposal = await votingInstance.getOneProposal.call(1, { from: _voter1 });
+        expect(proposal.voteCount).to.be.bignumber.equal("0");
+        proposal = await votingInstance.getOneProposal.call(2, { from: _voter1 });
+        expect(proposal.voteCount).to.be.bignumber.equal("3");
+        proposal = await votingInstance.getOneProposal.call(3, { from: _voter1 });
+        expect(proposal.voteCount).to.be.bignumber.equal("1");
+
+        let voter;
+        voter = await votingInstance.getVoter.call(_voter1, { from: _voter1 });
+        expect(voter.hasVoted).to.be.true;
+        expect(voter.votedProposalId).to.be.bignumber.equal("2");
+        voter = await votingInstance.getVoter.call(_voter2, { from: _voter1 });
+        expect(voter.hasVoted).to.be.true;
+        expect(voter.votedProposalId).to.be.bignumber.equal("2");
+        voter = await votingInstance.getVoter.call(_voter3, { from: _voter1 });
+        expect(voter.hasVoted).to.be.true;
+        expect(voter.votedProposalId).to.be.bignumber.equal("2");
+        voter = await votingInstance.getVoter.call(_voter4, { from: _voter1 });
+        expect(voter.hasVoted).to.be.true;
+        expect(voter.votedProposalId).to.be.bignumber.equal("3");
+
+        expect(await votingInstance.winningProposalID.call()).to.be.bignumber.equal("2");
+    });
+
+    it("Scenario 2 - 6 voters (5 votes)  - 7 proposals - 2 winner (only 1st winner is kept)", async () => {
+        //Add voters
+        await votingInstance.addVoter(_voter1, { from: _owner });
+        await votingInstance.addVoter(_voter2, { from: _owner });
+        await votingInstance.addVoter(_voter3, { from: _owner });
+        await votingInstance.addVoter(_voter4, { from: _owner });
+        await votingInstance.addVoter(_voter5, { from: _owner });
+        await votingInstance.addVoter(_voter6, { from: _owner });
+
+        //Add proposals
+        await votingInstance.startProposalsRegistering({ from: _owner });
+        await votingInstance.addProposal("ProposalDesc1", { from: _voter1 });
+        await votingInstance.addProposal("ProposalDesc2", { from: _voter2 });
+        await votingInstance.addProposal("ProposalDesc3", { from: _voter1 });
+        await votingInstance.addProposal("ProposalDesc4", { from: _voter1 });
+        await votingInstance.addProposal("ProposalDesc5", { from: _voter5 });
+        await votingInstance.addProposal("ProposalDesc6", { from: _voter1 });
+        await votingInstance.addProposal("ProposalDesc7", { from: _voter6 });
+        await votingInstance.endProposalsRegistering({ from: _owner });
+
+        //Submit votes
+        await votingInstance.startVotingSession({ from: _owner });
+        await votingInstance.setVote(1, { from: _voter1 });
+        await votingInstance.setVote(1, { from: _voter2 });
+        await votingInstance.setVote(2, { from: _voter3 });
+        await votingInstance.setVote(6, { from: _voter4 });
+        await votingInstance.setVote(6, { from: _voter6 });
+        await votingInstance.endVotingSession({ from: _owner });
+
+        //Tally votes
+        await votingInstance.tallyVotes({ from: _owner }); 
+
+
+        //Result analyses
+        let proposal;
+        proposal = await votingInstance.getOneProposal.call(1, { from: _voter1 });
+        expect(proposal.voteCount).to.be.bignumber.equal("2");
+        proposal = await votingInstance.getOneProposal.call(2, { from: _voter1 });
+        expect(proposal.voteCount).to.be.bignumber.equal("1");
+        proposal = await votingInstance.getOneProposal.call(3, { from: _voter1 });
+        expect(proposal.voteCount).to.be.bignumber.equal("0");
+        proposal = await votingInstance.getOneProposal.call(4, { from: _voter1 });
+        expect(proposal.voteCount).to.be.bignumber.equal("0");
+        proposal = await votingInstance.getOneProposal.call(5, { from: _voter1 });
+        expect(proposal.voteCount).to.be.bignumber.equal("0");
+        proposal = await votingInstance.getOneProposal.call(6, { from: _voter1 });
+        expect(proposal.voteCount).to.be.bignumber.equal("2");
+        proposal = await votingInstance.getOneProposal.call(7, { from: _voter1 });
+        expect(proposal.voteCount).to.be.bignumber.equal("0");
+
+        let voter;
+        voter = await votingInstance.getVoter.call(_voter1, { from: _voter1 });
+        expect(voter.hasVoted).to.be.true;
+        expect(voter.votedProposalId).to.be.bignumber.equal("1");
+        voter = await votingInstance.getVoter.call(_voter2, { from: _voter1 });
+        expect(voter.hasVoted).to.be.true;
+        expect(voter.votedProposalId).to.be.bignumber.equal("1");
+        voter = await votingInstance.getVoter.call(_voter3, { from: _voter1 });
+        expect(voter.hasVoted).to.be.true;
+        expect(voter.votedProposalId).to.be.bignumber.equal("2");
+        voter = await votingInstance.getVoter.call(_voter4, { from: _voter1 });
+        expect(voter.hasVoted).to.be.true;
+        expect(voter.votedProposalId).to.be.bignumber.equal("6");
+        voter = await votingInstance.getVoter.call(_voter5, { from: _voter1 });
+        expect(voter.hasVoted).to.be.false;
+        expect(voter.votedProposalId).to.be.bignumber.equal("0");
+        voter = await votingInstance.getVoter.call(_voter6, { from: _voter1 });
+        expect(voter.hasVoted).to.be.true;
+        expect(voter.votedProposalId).to.be.bignumber.equal("6");
+        
+        //Only first results with the higher votes is kept
+        expect(await votingInstance.winningProposalID.call()).to.be.bignumber.equal("1");
+    });
+    
 
 });
