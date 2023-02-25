@@ -2,9 +2,6 @@ const Voting = artifacts.require("./Voting.sol");
 const { BN, constants, expectRevert, expectEvent } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
 
-
-
-
 contract("Voting simple tests", accounts => {
 
     const _owner = accounts[0];
@@ -13,10 +10,9 @@ contract("Voting simple tests", accounts => {
     const _voter3 = accounts[3];
     const _nonVoter = accounts[9];
 
-
     let votingInstance;
 
-    beforeEach(async  () => {
+    beforeEach(async () => {
         votingInstance = await Voting.new({ from: _owner });
     });
 
@@ -33,15 +29,13 @@ contract("Voting simple tests", accounts => {
         });
     })
 
-
-
     //Getters tests
     describe("Getters function tests", () => {
         it("only voters can request voter informations", async () => {
             await votingInstance.addVoter(_voter1, { from: _owner });
             let voter1;
-            await expectRevert( voter1 = votingInstance.getVoter.call(_voter1, { from: _nonVoter }), "You're not a voter");
-            expect(await ( voter1 = votingInstance.getVoter.call(_voter1, { from: _voter1 })));
+            await expectRevert(voter1 = votingInstance.getVoter.call(_voter1, { from: _nonVoter }), "You're not a voter");
+            expect(await (voter1 = votingInstance.getVoter.call(_voter1, { from: _voter1 })));
         });
         it("only voters can request proposal informations", async () => {
             await votingInstance.addVoter(_voter1, { from: _owner });
@@ -51,7 +45,6 @@ contract("Voting simple tests", accounts => {
             expect(await (proposal = votingInstance.getOneProposal.call(0, { from: _voter1 })));
         });
     })
-
 
     //Workflow status change
     describe("States function tests", () => {
@@ -392,9 +385,6 @@ contract("Voting simple tests", accounts => {
             await expectEvent(submitVote2, "Voted", { voter: _voter2, proposalId: BN(1) });
         });
     });
-
-
-
 });
 
 contract("Voting scenarios tests", accounts => {
@@ -409,7 +399,7 @@ contract("Voting scenarios tests", accounts => {
 
     let votingInstance;
 
-    beforeEach(async  () => {
+    beforeEach(async () => {
         votingInstance = await Voting.new({ from: _owner });
     });
 
@@ -436,8 +426,8 @@ contract("Voting scenarios tests", accounts => {
         await votingInstance.endVotingSession({ from: _owner });
 
         //Tally votes
-        await votingInstance.tallyVotes({ from: _owner });  
-        
+        await votingInstance.tallyVotes({ from: _owner });
+
         //Result analyses
         let proposal;
         proposal = await votingInstance.getOneProposal.call(1, { from: _voter1 });
@@ -494,7 +484,7 @@ contract("Voting scenarios tests", accounts => {
         await votingInstance.endVotingSession({ from: _owner });
 
         //Tally votes
-        await votingInstance.tallyVotes({ from: _owner }); 
+        await votingInstance.tallyVotes({ from: _owner });
 
 
         //Result analyses
@@ -533,10 +523,8 @@ contract("Voting scenarios tests", accounts => {
         voter = await votingInstance.getVoter.call(_voter6, { from: _voter1 });
         expect(voter.hasVoted).to.be.true;
         expect(voter.votedProposalId).to.be.bignumber.equal("6");
-        
+
         //Only first results with the higher votes is kept
         expect(await votingInstance.winningProposalID.call()).to.be.bignumber.equal("1");
     });
-    
-
 });
