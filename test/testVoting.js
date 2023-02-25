@@ -301,7 +301,7 @@ contract("Voting simple tests", accounts => {
             await expectRevert(votingInstance.addProposal("", { from: _voter1 }), "Vous ne pouvez pas ne rien proposer");
         });
 
-        it("proposal descriptions are correctly stored", async () => {
+        it("proposals descriptions are correctly stored", async () => {
             await votingInstance.addProposal("ProposalDesc1", { from: _voter1 });
             await votingInstance.addProposal("ProposalDesc2", { from: _voter2 });
             const proposal0 = await votingInstance.getOneProposal.call(0, { from: _voter1 });
