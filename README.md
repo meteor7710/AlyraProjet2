@@ -32,5 +32,7 @@ In this section we will review the basics tests done to validate the different f
 #### Vote function tests
 ### Voting scenarios tests
 #### Scenario 1 - 4 voters  - 3 proposals - 1 winner
-#### Scenario 2 - 6 voters (5 votes)  - 7 proposals - 2 winner (only 1st winner is kept)
+In this Scenario we will have 4 voters. Voter 1 submits 2 proposals and voter 2 the third proposals. Voters 1,2 and 3 vote for proposal 2 and voter 4 votes for proposal 3. We validates that proposal 2 is the winner and that all voters data and proposals data are correctly updated.
+#### Scenario 2 - 6 voters (5 votes)  - 7 proposals - 2 winners
+In this Scenario we will have 6 voters. Voter 1 submits 4 proposals. Voter 2,5,6 submit each one a proposal. Voters 1 and 2 vote for proposal 1. Voter 3 vote for proposal 2.  Voter 4 and 6 vote for proposal 6. Voter 5 doesn't votes. We validates that proposal 1 is the winner even if proposal 6 as the same vote count. The tallyVotes function keep only the first winner in case equality. The we will check that all voters data and proposals data are correctly updated.
 
