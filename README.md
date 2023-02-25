@@ -27,12 +27,47 @@ We verify that getters access are working correctly.
 * only voters can request voter informations : only users registered as voters can request voter informations.
 * only voters can request proposal informations: only users registered as voters can request proposal informations.
 #### States function tests
+Verify  functions linked to the Vote session workflow.
 ##### Change from RegisteringVoters to other tests
+Verify behavior linked to the RegisteringVoters status.
+* owner can change status from RegisteringVoters to ProposalsRegistrationStarted : the contract owner can change status from RegisteringVoters to ProposalsRegistrationStarted.
+* non-owner can't change status from RegisteringVoters to ProposalsRegistrationStarted : non-owner can't change status from RegisteringVoters to ProposalsRegistrationStarted.
+* change status from RegisteringVoters to ProposalsRegistrationStarted change workflowStatus to 1 : validate the status modification is correctly stored.
+* change status from RegisteringVoters to VotingSessionStarted is not possible : verify that we can not change status to inapropriate status (we test only one other state).
+* event is correctly emmited when changed status to ProposalsRegistrationStarted : check that the WorkflowStatusChange event is correcly emit with appropriates values when the owner change the workflow status.
 ##### Change from ProposalsRegistrationStarted to other tests
+Verify behavior linked to the ProposalsRegistrationStarted status.
+* default GENESIS proposal with ID 0 is created : verify that a default proposal is created with ID 0 and description "GENESIS" when we change state to ProposalsRegistrationStarted.
+* owner can change status from ProposalsRegistrationStarted to ProposalsRegistrationEnded : the contract owner can change status from ProposalsRegistrationStarted to ProposalsRegistrationEnded.
+* non-owner can't change status from ProposalsRegistrationStarted to ProposalsRegistrationEnded : non-owner can't change status from ProposalsRegistrationStarted to ProposalsRegistrationEnded.
+* change status from ProposalsRegistrationStarted to ProposalsRegistrationEnded change workflowStatus to 2 : validate the status modification is correctly stored.
+* change status from ProposalsRegistrationStarted to VotingSessionStarted is not possible : verify that we can not change status to inapropriate status (we test only one other state).
+* event is correctly emmited when changed status to ProposalsRegistrationStarted : check that the WorkflowStatusChange event is correcly emit with appropriates values when the owner change the workflow status.
 ##### Change from ProposalsRegistrationEnded to other tests
+Verify behavior linked to the ProposalsRegistrationEnded status.
+* owner can change status from ProposalsRegistrationEnded to startVotingSession : the contract owner can change status from ProposalsRegistrationEnded to startVotingSession.
+* non-owner can't change status from ProposalsRegistrationEnded to startVotingSession : non-owner can't change status from ProposalsRegistrationEnded to startVotingSession.
+* change status from ProposalsRegistrationEnded to startVotingSession change workflowStatus to 3 : validate the status modification is correctly stored.
+* change status from ProposalsRegistrationEnded to VotingSessionEnded is not possible : verify that we can not change status to inapropriate status (we test only one other state).
+* event is correctly emmited when changed status to startVotingSession : check that the WorkflowStatusChange event is correcly emit with appropriates values when the owner change the workflow status.
 ##### Change from VotingSessionStarted to other tests
+Verify behavior linked to the VotingSessionStarted status.
+* owner can change status from startVotingSession to VotingSessionEnded : the contract owner can change status from startVotingSession to VotingSessionEnded.
+* non-owner can't change status from startVotingSession to VotingSessionEnded : non-owner can't change status from startVotingSession to VotingSessionEnded.
+* change status from startVotingSession to VotingSessionEnded change workflowStatus to 4 : validate the status modification is correctly stored.
+* change status from startVotingSession to ProposalsRegistrationEnded is not possible : verify that we can not change status to inapropriate status (we test only one other state).
+* event is correctly emmited when changed status to VotingSessionEnded : check that the WorkflowStatusChange event is correcly emit with appropriates values when the owner change the workflow status.
 ##### Change from VotingSessionEnded to other tests
+Verify behavior linked to the VotingSessionEnded status.
+* owner can change status from VotingSessionEnded to VotesTallied : the contract owner can change status from VotingSessionEnded to VotesTallied.
+* non-owner can't change status from VotingSessionEnded to VotesTallied : non-owner can't change status from VotingSessionEnded to VotesTallied.
+* change status from VotingSessionEnded to VotesTallied change workflowStatus to 5 : validate the status modification is correctly stored.
+* change status from VotingSessionEnded to ProposalsRegistrationEnded is not possible : verify that we can not change status to inapropriate status (we test only one other state).
+* event is correctly emmited when changed status to VotesTallied : check that the WorkflowStatusChange event is correcly emit with appropriates values when the owner change the workflow status.
+* votes are correctly tallied with 1 vote 1 proposal : test that the tallyVotes function works for a simple case.
 ##### Change from VotesTallied to other tests
+Verify behavior linked to the VotesTallied status.
+* change status from VotesTallied to ProposalsRegistrationStarted is not possible : verify that we can not change status (we test only one other state).
 #### Registration function tests
 Validate with the following tests the whitelist registration function.
 * owner can add voter : the contract owner can add a voter.
