@@ -464,7 +464,7 @@ contract("Voting scenarios tests", accounts => {
         expect(await votingInstance.winningProposalID.call()).to.be.bignumber.equal("2");
     });
 
-    it("Scenario 2 - 6 voters (5 votes)  - 7 proposals - 2 winner (only 1st winner is kept)", async () => {
+    it("Scenario 2 - 6 voters (5 votes)  - 7 proposals - 2 winners (only 1st winner is kept)", async () => {
         //Add voters
         await votingInstance.addVoter(_voter1, { from: _owner });
         await votingInstance.addVoter(_voter2, { from: _owner });
